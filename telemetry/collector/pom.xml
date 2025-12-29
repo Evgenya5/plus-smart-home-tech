@@ -56,7 +56,7 @@
                     </execution>
                 </executions>
                 <configuration>
-                    <mainClass>ru.yandex.practicum.smarthome.telemetry.collector.CollectorApplication</mainClass>
+                    <mainClass>ru.yandex.practicum.smarthome.telemetry.ru.yandex.practicum.smarthome.telemetry.collector.CollectorApplication</mainClass>
                 </configuration>
             </plugin>
 
