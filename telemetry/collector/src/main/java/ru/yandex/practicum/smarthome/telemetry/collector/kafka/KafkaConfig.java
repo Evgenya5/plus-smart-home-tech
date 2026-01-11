@@ -1,30 +1,36 @@
 package ru.yandex.practicum.smarthome.telemetry.collector.kafka;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.apache.avro.specific.SpecificRecordBase;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import ru.yandex.practicum.kafka.serializer.GeneralAvroSerializer;
 
 import java.util.Properties;
 
+@Getter
+@Setter
 @Configuration
+@ConfigurationProperties("collector.kafka.producer")
 public class KafkaConfig {
 
-    @Value("${collector.kafka.bootstrap-servers}")
     private String bootstrapServers;
+    private String keySerializer;
+    private String valueSerializer;
 
     @Bean
-    public KafkaProducer<String, SpecificRecordBase> initProducer(KafkaProperties properties) {
+    public KafkaProducer<String, SpecificRecordBase> kafkaProducer() {
         Properties config = new Properties();
-
         config.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
-        config.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
-        config.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, GeneralAvroSerializer.class);
+        config.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, keySerializer);
+        config.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, valueSerializer);
 
         return new KafkaProducer<>(config);
     }
