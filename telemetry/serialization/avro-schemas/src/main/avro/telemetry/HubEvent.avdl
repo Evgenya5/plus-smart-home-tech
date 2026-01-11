@@ -72,9 +72,14 @@ protocol HubEventProtocol {
          } payload;
      }
 
-     record HubEventAvro {
-         string hub_id;
-         timestamp_ms timestamp;
-         HubEventPayload payload;
-     }
+      record HubEventAvro {
+             string hub_id;
+             timestamp_ms timestamp;
+             union {
+                 DeviceAddedEventAvro,
+                 DeviceRemovedEventAvro,
+                 ScenarioAddedEventAvro,
+                 ScenarioRemovedEventAvro
+             } payload;
+      }
 }
