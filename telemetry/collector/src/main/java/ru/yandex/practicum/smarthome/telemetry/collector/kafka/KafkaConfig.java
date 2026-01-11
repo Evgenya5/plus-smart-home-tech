@@ -24,21 +24,23 @@ import java.util.Properties;
 public class KafkaConfig {
 
     // Общие настройки
-    //private String bootstrapServers;
+    private String bootstrapServers;
+    private String keySerializer;
+    private String valueSerializer;
 
-    // Конфиги
+    /*// Конфиги
     @Autowired
-    private CollectorProducerConfig producerConfig;
+    private CollectorProducerConfig producerConfig;*/
 
     @Bean
     public KafkaProducer<String, SpecificRecordBase> initProducer(KafkaProperties properties) {
-        /*Properties config = new Properties();
+        Properties config = new Properties();
 
         config.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
-        config.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
-        config.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, AvroSerializer.class);*/
+        config.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, keySerializer);
+        config.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, valueSerializer);
 
-        return producerConfig.kafkaProducer();
+        return new KafkaProducer<>(config);
     }
 }
 
