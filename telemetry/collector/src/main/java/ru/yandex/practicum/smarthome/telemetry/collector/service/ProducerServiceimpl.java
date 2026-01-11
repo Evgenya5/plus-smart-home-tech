@@ -3,6 +3,7 @@ package ru.yandex.practicum.smarthome.telemetry.collector.service;
 import org.apache.avro.specific.SpecificRecordBase;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.grpc.telemetry.event.HubEventProto;
@@ -28,6 +29,7 @@ public class ProducerServiceimpl implements ProducerService {
     private final Map<SensorEventProto.PayloadCase, SensorEventMapper> sensorEventMappers;
     private final Map<HubEventProto.PayloadCase, HubEventMapper> hubEventMappers;
 
+    @Autowired
     public ProducerServiceimpl(
             KafkaClient kafkaClient,
             List<SensorEventMapper> sensorEventMappers,
