@@ -9,5 +9,6 @@ collector:
         sensors: telemetry.sensors.v1
         hubs: telemetry.hubs.v1
     producer:
-        key-serializer: org.apache.kafka.common.serialization.StringSerializer
-        value-serializer: ru.yandex.practicum.kafka.serializer.GeneralAvroSerializer
+      bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: ru.yandex.practicum.kafka.serializer.GeneralAvroSerializer
