@@ -4,9 +4,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.grpc.telemetry.event.HubEventProto;
 import ru.yandex.practicum.grpc.telemetry.event.SensorEventProto;
-import ru.yandex.practicum.kafka.KafkaClient;
-import ru.yandex.practicum.mapper.hub.HubEventMapper;
-import ru.yandex.practicum.mapper.sensor.SensorEventMapper;
+import ru.yandex.practicum.smarthome.telemetry.collector.kafka.KafkaClient;
+import ru.yandex.practicum.smarthome.telemetry.collector.mapper.hub.HubEventMapper;
+import ru.yandex.practicum.smarthome.telemetry.collector.mapper.sensor.SensorEventMapper;
 
 import java.util.List;
 import java.util.Map;
