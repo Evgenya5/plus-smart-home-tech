@@ -1,7 +1,5 @@
 package ru.yandex.practicum.smarthome.telemetry.collector.kafka;
 
-package ru.yandex.practicum.kafka;
-
 import org.apache.avro.specific.SpecificRecordBase;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
@@ -10,7 +8,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import ru.yandex.practicum.serializer.AvroSerializer;
+import ru.yandex.practicum.kafka.serializer.GeneralAvroSerializer;
 
 import java.util.Properties;
 
@@ -26,7 +24,7 @@ public class KafkaConfig {
 
         config.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         config.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
-        config.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, AvroSerializer.class);
+        config.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, GeneralAvroSerializer.class);
 
         return new KafkaProducer<>(config);
     }
