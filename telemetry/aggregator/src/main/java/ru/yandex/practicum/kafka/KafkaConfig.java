@@ -25,7 +25,7 @@ public class KafkaConfig {
     // Общие настройки
     private String bootstrapServers;
 
-    // Инжектим конфигурационные классы
+    // Конфиги
     @Autowired
     private AggregatorProducerConfig producerConfig;
 
