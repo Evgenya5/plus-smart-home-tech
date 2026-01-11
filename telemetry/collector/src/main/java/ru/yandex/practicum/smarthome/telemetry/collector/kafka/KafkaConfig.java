@@ -5,12 +5,17 @@ import lombok.Setter;
 import org.apache.avro.specific.SpecificRecordBase;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
+import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.time.Duration;
+import java.util.Properties;
 
 @Getter
 @Setter
@@ -19,33 +24,21 @@ import java.time.Duration;
 public class KafkaConfig {
 
     // Общие настройки
-    private String bootstrapServers;
+    //private String bootstrapServers;
 
     // Конфиги
     @Autowired
     private CollectorProducerConfig producerConfig;
 
     @Bean
-    public KafkaClient kafkaClient(
-            KafkaProducer<String, SpecificRecordBase> kafkaProducer) {
+    public KafkaProducer<String, SpecificRecordBase> initProducer(KafkaProperties properties) {
+        /*Properties config = new Properties();
 
-        return new KafkaClient() {
-            @Override
-            public Producer<String, SpecificRecordBase> getProducer() {
-                return kafkaProducer;
-            }
+        config.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
+        config.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+        config.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, AvroSerializer.class);*/
 
-            @Override
-            public void close() {
-                try {
-                    if (kafkaProducer != null) {
-                        kafkaProducer.flush();
-                        kafkaProducer.close(Duration.ofSeconds(10));
-                    }
-                } catch (Exception e) {
-                }
-            }
-        };
+        return producerConfig.kafkaProducer();
     }
 }
 
