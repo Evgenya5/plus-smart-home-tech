@@ -24,7 +24,7 @@ public class HubEventProcessor implements Runnable {
     private final Consumer<String, HubEventAvro> hubConsumer;
     private final Map<String, HubEventHandler> hubEventHandlers;
 
-    @Value("${app.kafka.topics.hub-events}")
+    @Value("${analyzer.kafka.topics.hub-events}")
     private String hubEventsTopic;
 
     public HubEventProcessor(KafkaClient kafkaClient, List<HubEventHandler> hubEventHandlers) {

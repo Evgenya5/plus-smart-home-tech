@@ -19,7 +19,7 @@ public class SnapshotEventProcessor {
     private final SnapshotHandler snapshotHandler;
     private final Consumer<String, SensorsSnapshotAvro> snapshotConsumer;
 
-    @Value("${app.kafka.topics.snapshots-events}")
+    @Value("${analyzer.kafka.topics.snapshots-events}")
     private String snapshotEventsTopic;
 
     public SnapshotEventProcessor(SnapshotHandler snapshotHandler, KafkaClient kafkaClient) {
