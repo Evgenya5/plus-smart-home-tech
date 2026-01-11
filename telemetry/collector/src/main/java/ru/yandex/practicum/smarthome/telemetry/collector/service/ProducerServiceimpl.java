@@ -2,6 +2,7 @@ package ru.yandex.practicum.smarthome.telemetry.collector.service;
 
 import org.apache.avro.specific.SpecificRecordBase;
 import org.apache.kafka.clients.producer.Producer;
+import org.apache.kafka.clients.producer.ProducerRecord;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.grpc.telemetry.event.HubEventProto;
@@ -42,11 +43,11 @@ public class ProducerServiceimpl implements ProducerService {
     @Override
     public void processSensorEvent(SensorEventProto sensorEventProto) {
         if (sensorEventMappers.containsKey(sensorEventProto.getPayloadCase())) {
-            producer.send(
+            producer.send(new ProducerRecord<>(
                     sensorsEventsTopic,
                     sensorEventProto.getHubId(),
                     sensorEventMappers.get(sensorEventProto.getPayloadCase()).mapToAvro(sensorEventProto)
-            );
+            ));
         } else {
             throw new IllegalArgumentException("Нет подходящего маппера");
         }
@@ -55,11 +56,11 @@ public class ProducerServiceimpl implements ProducerService {
     @Override
     public void processHubEvent(HubEventProto hubEventProto) {
         if (hubEventMappers.containsKey(hubEventProto.getPayloadCase())) {
-            producer.send(
+            producer.send(new ProducerRecord<>(
                     hubsEventsTopic,
                     hubEventProto.getHubId(),
                     hubEventMappers.get(hubEventProto.getPayloadCase()).mapToAvro(hubEventProto)
-            );
+            ));
         } else {
             throw new IllegalArgumentException("Нет подходящего маппера");
         }
