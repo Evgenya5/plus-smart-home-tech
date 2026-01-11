@@ -1,31 +1,12 @@
 package ru.yandex.practicum.smarthome.telemetry.collector.kafka;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+package ru.yandex.practicum.kafka;
+
 import org.apache.avro.specific.SpecificRecordBase;
-import org.apache.kafka.clients.producer.KafkaProducer;
-import org.apache.kafka.clients.producer.ProducerRecord;
-import org.springframework.stereotype.Component;
+import org.apache.kafka.clients.consumer.Consumer;
+import org.apache.kafka.clients.producer.Producer;
 
-@Slf4j
-@RequiredArgsConstructor
-@Component
-public class KafkaClient implements AutoCloseable {
-    private final KafkaProducer<String, SpecificRecordBase> producer;
-
-    public void send(String topic, String key, SpecificRecordBase record) {
-        producer.send(new ProducerRecord<>(topic, key, record), (recordMetadata, exception) -> {
-            if (exception != null) {
-                log.error("Ошибка при отправке в Kafka", exception);
-            }
-        });
-    }
-
-    @Override
-    public void close() throws Exception {
-        producer.flush();
-        producer.close();
-    }
-
-
+public interface KafkaClient extends AutoCloseable {
+    Producer<String, SpecificRecordBase> getProducer();
+    void close();
 }
