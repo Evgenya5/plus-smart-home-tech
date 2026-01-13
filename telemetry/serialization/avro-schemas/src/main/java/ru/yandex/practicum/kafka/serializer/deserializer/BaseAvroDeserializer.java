@@ -1,4 +1,4 @@
-package ru.yandex.practicum.deserializer;
+package ru.yandex.practicum.kafka.serializer.deserializer;
 
 import org.apache.avro.Schema;
 import org.apache.avro.io.BinaryDecoder;
@@ -7,7 +7,7 @@ import org.apache.avro.io.DecoderFactory;
 import org.apache.avro.specific.SpecificDatumReader;
 import org.apache.avro.specific.SpecificRecordBase;
 import org.apache.kafka.common.serialization.Deserializer;
-import ru.yandex.practicum.exception.DeserializationException;
+import ru.yandex.practicum.kafka.serializer.exception.DeserializationException;
 
 public class BaseAvroDeserializer<T extends SpecificRecordBase> implements Deserializer<T> {
 
