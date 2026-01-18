@@ -63,6 +63,7 @@ public class AggregationStarter {
                         try {
                             RecordMetadata metadata = futureResult.get();
                             // логирование успеха
+                            consumer.commitSync();
                             log.debug("Данные успешно отправлены");
                         } catch (Exception e) {
                             log.warn("Не удалось записать снапшот ", e);
@@ -70,7 +71,7 @@ public class AggregationStarter {
 
                     });
                 }
-                consumer.commitAsync();
+                //consumer.commitAsync();
             }
         } catch (WakeupException ignored) {
             // Игнорируем при выключении
