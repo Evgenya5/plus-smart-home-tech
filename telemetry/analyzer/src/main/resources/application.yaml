@@ -40,7 +40,7 @@ analyzer:
         key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
         value-deserializer: ru.yandex.practicum.kafka.serializer.deserializer.SensorsSnapshotDeserializer
         enable-auto-commit: false
-        time-out: 500
+        time-out: 1000
     topics:
       hub-events: telemetry.hubs.v1
       snapshots-events: telemetry.snapshots.v1
