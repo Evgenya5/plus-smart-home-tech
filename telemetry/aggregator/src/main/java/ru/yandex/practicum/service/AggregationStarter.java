@@ -30,6 +30,9 @@ public class AggregationStarter {
     @Value("${aggregator.kafka.topics.snapshots-events}")
     private String snapshotsEventsTopic;
 
+    @Value("${aggregator.kafka.listener.poll-timeout}")
+    private long pollMillis;
+
     private final Producer<String, SpecificRecordBase> producer;
     private final Consumer<String, SpecificRecordBase> consumer;
     private final SnapshotAggregator snapshotAggregator;
@@ -45,7 +48,7 @@ public class AggregationStarter {
         try {
             consumer.subscribe(List.of(sensorsEventsTopic));
             while (true) {
-                ConsumerRecords<String, SpecificRecordBase> records = consumer.poll(Duration.ofMillis(100));
+                ConsumerRecords<String, SpecificRecordBase> records = consumer.poll(Duration.ofMillis(pollMillis));
                 for (ConsumerRecord<String, SpecificRecordBase> record : records) {
                     SensorEventAvro event = (SensorEventAvro) record.value();
 

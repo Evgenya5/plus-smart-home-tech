@@ -24,6 +24,9 @@ aggregator:
       hubs-events: telemetry.hubs.v1
       snapshots-events: telemetry.snapshots.v1
 
+    listener:
+      poll-timeout: 100
+
 logging:
   level:
     ru.yandex.practicum: DEBUG
