@@ -1,11 +1,13 @@
 package ru.yandex.practicum.service;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.avro.specific.SpecificRecordBase;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.clients.producer.RecordMetadata;
 import org.apache.kafka.common.errors.WakeupException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -16,7 +18,9 @@ import ru.yandex.practicum.kafka.telemetry.event.SensorsSnapshotAvro;
 import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.Future;
 
+@Slf4j
 @Component
 public class AggregationStarter {
 
@@ -49,11 +53,21 @@ public class AggregationStarter {
 
                     updatedSnapshot.ifPresent(snapshot -> {
                         SensorsSnapshotAvro snap = updatedSnapshot.get();
-                        producer.send(new ProducerRecord<>(
+                        Future<RecordMetadata> futureResult = producer.send(new ProducerRecord<>(
                                 snapshotsEventsTopic,
+                                null,
+                                System.currentTimeMillis(),
                                 snapshot.getHubId(),
                                 snap
                         ));
+                        try {
+                            RecordMetadata metadata = futureResult.get();
+                            // логирование успеха
+                            log.debug("Данные успешно отправлены");
+                        } catch (Exception e) {
+                            log.warn("Не удалось записать снапшот ", e);
+                        }
+
                     });
                 }
                 consumer.commitAsync();
