@@ -42,7 +42,7 @@ public class SnapshotEventProcessor {
                         snapshotHandler.handle(sensorsSnapshot);
 
                     }
-                    snapshotConsumer.commitAsync();
+                    snapshotConsumer.commitSync();
                 }
             }
         } catch (WakeupException ignored) {

@@ -57,7 +57,6 @@ public class HubEventProcessor implements Runnable {
                         eventHandler.handle(event);
                         hubConsumer.commitSync();
                     }
-                   // hubConsumer.commitAsync();
                 }
             }
         } catch (WakeupException ignored) {
