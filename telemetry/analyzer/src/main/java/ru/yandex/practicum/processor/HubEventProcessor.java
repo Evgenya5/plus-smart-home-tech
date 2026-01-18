@@ -55,9 +55,9 @@ public class HubEventProcessor implements Runnable {
                             throw new IllegalArgumentException("Подходящий handler не найден");
                         }
                         eventHandler.handle(event);
-
+                        hubConsumer.commitSync();
                     }
-                    hubConsumer.commitAsync();
+                   // hubConsumer.commitAsync();
                 }
             }
         } catch (WakeupException ignored) {
