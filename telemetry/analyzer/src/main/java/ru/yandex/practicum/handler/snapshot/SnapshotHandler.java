@@ -41,7 +41,7 @@ public class SnapshotHandler {
                 scenarioConditionRepository.findByScenario(scenario);
 
         return scenarioConditions.stream()
-                .noneMatch(sc -> !checkCondition(sc.getCondition(),
+                .allMatch(sc -> checkCondition(sc.getCondition(),
                         sc.getSensor().getId(),
                         sensorStateMap));
     }
@@ -91,6 +91,12 @@ public class SnapshotHandler {
     }
 
     private void sendScenarioAction(Scenario scenario) {
+
+        try {
         scenarioActionRepository.findByScenario(scenario).forEach(hubRouterClient::sendDeviceRequest);
+        } catch (Exception e) {
+            log.error("Ошибка обработки события сценария: {}", e.getMessage(), e);
+            throw new RuntimeException("Failed to process scenario added event", e);
+        }
     }
 }

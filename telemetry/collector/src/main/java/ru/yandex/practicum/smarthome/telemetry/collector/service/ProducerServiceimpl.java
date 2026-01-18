@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.grpc.telemetry.event.HubEventProto;
 import ru.yandex.practicum.grpc.telemetry.event.SensorEventProto;
+import ru.yandex.practicum.smarthome.telemetry.collector.exception.HubEventPayloadException;
 import ru.yandex.practicum.smarthome.telemetry.collector.kafka.KafkaClient;
 import ru.yandex.practicum.smarthome.telemetry.collector.mapper.hub.HubEventMapper;
 import ru.yandex.practicum.smarthome.telemetry.collector.mapper.sensor.SensorEventMapper;
@@ -46,7 +47,7 @@ public class ProducerServiceimpl implements ProducerService {
                     sensorEventMappers.get(sensorEventProto.getPayloadCase()).mapToAvro(sensorEventProto)
             );
         } else {
-            throw new IllegalArgumentException("Нет подходящего маппера");
+            throw new HubEventPayloadException("Не найден обработчик для типа события: " + sensorEventProto.getPayloadCase());
         }
     }
 
@@ -59,7 +60,7 @@ public class ProducerServiceimpl implements ProducerService {
                     hubEventMappers.get(hubEventProto.getPayloadCase()).mapToAvro(hubEventProto)
             );
         } else {
-            throw new IllegalArgumentException("Нет подходящего маппера");
+            throw new HubEventPayloadException("Не найден обработчик для типа события: " + hubEventProto.getPayloadCase());
         }
     }
 }

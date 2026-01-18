@@ -1,11 +1,13 @@
 package ru.yandex.practicum.service;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.avro.specific.SpecificRecordBase;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.clients.producer.RecordMetadata;
 import org.apache.kafka.common.errors.WakeupException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -16,7 +18,9 @@ import ru.yandex.practicum.kafka.telemetry.event.SensorsSnapshotAvro;
 import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.Future;
 
+@Slf4j
 @Component
 public class AggregationStarter {
 
@@ -25,6 +29,9 @@ public class AggregationStarter {
 
     @Value("${aggregator.kafka.topics.snapshots-events}")
     private String snapshotsEventsTopic;
+
+    @Value("${aggregator.kafka.listener.poll-timeout}")
+    private long pollMillis;
 
     private final Producer<String, SpecificRecordBase> producer;
     private final Consumer<String, SpecificRecordBase> consumer;
@@ -41,7 +48,7 @@ public class AggregationStarter {
         try {
             consumer.subscribe(List.of(sensorsEventsTopic));
             while (true) {
-                ConsumerRecords<String, SpecificRecordBase> records = consumer.poll(Duration.ofMillis(100));
+                ConsumerRecords<String, SpecificRecordBase> records = consumer.poll(Duration.ofMillis(pollMillis));
                 for (ConsumerRecord<String, SpecificRecordBase> record : records) {
                     SensorEventAvro event = (SensorEventAvro) record.value();
 
@@ -49,14 +56,25 @@ public class AggregationStarter {
 
                     updatedSnapshot.ifPresent(snapshot -> {
                         SensorsSnapshotAvro snap = updatedSnapshot.get();
-                        producer.send(new ProducerRecord<>(
+                        Future<RecordMetadata> futureResult = producer.send(new ProducerRecord<>(
                                 snapshotsEventsTopic,
+                                null,
+                                System.currentTimeMillis(),
                                 snapshot.getHubId(),
                                 snap
                         ));
+                        try {
+                            RecordMetadata metadata = futureResult.get();
+                            // логирование успеха
+                            consumer.commitSync();
+                            log.debug("Данные успешно отправлены");
+                        } catch (Exception e) {
+                            log.warn("Не удалось записать снапшот ", e);
+                        }
+
                     });
                 }
-                consumer.commitAsync();
+                //consumer.commitAsync();
             }
         } catch (WakeupException ignored) {
             // Игнорируем при выключении

@@ -27,6 +27,9 @@ public class HubEventProcessor implements Runnable {
     @Value("${analyzer.kafka.topics.hub-events}")
     private String hubEventsTopic;
 
+    @Value("${analyzer.kafka.consumer.hub.time-out}")
+    private long pollTimeout;
+
     public HubEventProcessor(KafkaClient kafkaClient, List<HubEventHandler> hubEventHandlers) {
         this.hubConsumer = kafkaClient.getHubConsumer();
         this.hubEventHandlers = hubEventHandlers.stream()
@@ -39,7 +42,7 @@ public class HubEventProcessor implements Runnable {
         try {
             hubConsumer.subscribe(List.of(hubEventsTopic));
             while (true) {
-                ConsumerRecords<String, HubEventAvro> records = hubConsumer.poll(Duration.ofMillis(1000));
+                ConsumerRecords<String, HubEventAvro> records = hubConsumer.poll(Duration.ofMillis(pollTimeout));
                 if (!records.isEmpty()) {
                     for (ConsumerRecord<String, HubEventAvro> record : records) {
                         HubEventAvro event = record.value();
@@ -52,9 +55,8 @@ public class HubEventProcessor implements Runnable {
                             throw new IllegalArgumentException("Подходящий handler не найден");
                         }
                         eventHandler.handle(event);
-
+                        hubConsumer.commitSync();
                     }
-                    hubConsumer.commitAsync();
                 }
             }
         } catch (WakeupException ignored) {

@@ -22,6 +22,9 @@ public class SnapshotEventProcessor {
     @Value("${analyzer.kafka.topics.snapshots-events}")
     private String snapshotEventsTopic;
 
+    @Value("${analyzer.kafka.consumer.snapshot.time-out}")
+    private long pollTimeout;
+
     public SnapshotEventProcessor(SnapshotHandler snapshotHandler, KafkaClient kafkaClient) {
         this.snapshotHandler = snapshotHandler;
         this.snapshotConsumer = kafkaClient.getSnapshotConsumer();
@@ -32,14 +35,14 @@ public class SnapshotEventProcessor {
         try {
             snapshotConsumer.subscribe(List.of(snapshotEventsTopic));
             while (true) {
-                ConsumerRecords<String, SensorsSnapshotAvro> records = snapshotConsumer.poll(Duration.ofMillis(1000));
+                ConsumerRecords<String, SensorsSnapshotAvro> records = snapshotConsumer.poll(Duration.ofMillis(pollTimeout));
                 if (!records.isEmpty()) {
                     for (ConsumerRecord<String, SensorsSnapshotAvro> record : records) {
                         SensorsSnapshotAvro sensorsSnapshot = record.value();
                         snapshotHandler.handle(sensorsSnapshot);
 
                     }
-                    snapshotConsumer.commitAsync();
+                    snapshotConsumer.commitSync();
                 }
             }
         } catch (WakeupException ignored) {
