@@ -59,7 +59,7 @@ public class AggregationStarter {
                         Future<RecordMetadata> futureResult = producer.send(new ProducerRecord<>(
                                 snapshotsEventsTopic,
                                 null,
-                                System.currentTimeMillis(),
+                                snapshot.getTimestamp().toEpochMilli(),
                                 snapshot.getHubId(),
                                 snap
                         ));
