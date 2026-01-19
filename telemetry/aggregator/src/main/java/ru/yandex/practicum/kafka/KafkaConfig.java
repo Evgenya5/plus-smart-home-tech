@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import ru.yandex.practicum.kafka.telemetry.event.SensorEventAvro;
 
 import java.time.Duration;
 
@@ -35,7 +36,7 @@ public class KafkaConfig {
     @Bean
     public KafkaClient kafkaClient(
             KafkaProducer<String, SpecificRecordBase> kafkaProducer,
-            KafkaConsumer<String, SpecificRecordBase> kafkaConsumer) {
+            KafkaConsumer<String, SensorEventAvro> kafkaConsumer) {
 
         return new KafkaClient() {
             @Override
@@ -44,7 +45,7 @@ public class KafkaConfig {
             }
 
             @Override
-            public Consumer<String, SpecificRecordBase> getConsumer() {
+            public Consumer<String, SensorEventAvro> getConsumer() {
                 return kafkaConsumer;
             }
 
