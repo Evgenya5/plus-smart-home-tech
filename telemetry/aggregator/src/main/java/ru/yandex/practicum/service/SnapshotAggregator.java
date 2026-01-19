@@ -51,13 +51,13 @@ public class SnapshotAggregator {
         sensorStates.put(sensorId, newState);
 
         // Обновляем снапшот (создаём копию с обновлёнными данными)
-        SensorsSnapshotAvro updateSnapshot = SensorsSnapshotAvro.newBuilder(snapshot)
-                .setTimestamp(event.getTimestamp())
-                .setSensorsState(sensorStates)
-                .build();
+        //SensorsSnapshotAvro updateSnapshot = SensorsSnapshotAvro.newBuilder(snapshot);
+                snapshot.setTimestamp(event.getTimestamp());
+                snapshot.setSensorsState(sensorStates);
+                //.build();
 
-        snapshots.put(hubId, updateSnapshot);
+        snapshots.put(hubId, snapshot);
 
-        return Optional.of(updateSnapshot);
+        return Optional.of(snapshot);
     }
 }
