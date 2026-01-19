@@ -8,6 +8,6 @@ import ru.yandex.practicum.kafka.telemetry.event.SensorEventAvro;
 
 public interface KafkaClient extends AutoCloseable {
     Producer<String, SpecificRecordBase> getProducer();
-    KafkaConsumer<String, SensorEventAvro> getConsumer();
+    Consumer<String, SensorEventAvro> getConsumer();
     void close();
 }
