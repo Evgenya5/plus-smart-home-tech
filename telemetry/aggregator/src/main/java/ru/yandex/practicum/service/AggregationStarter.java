@@ -18,6 +18,7 @@ import ru.yandex.practicum.kafka.telemetry.event.SensorsSnapshotAvro;
 import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 @Slf4j
@@ -68,13 +69,12 @@ public class AggregationStarter {
                             // логирование успеха
                             consumer.commitSync();
                             log.debug("Данные успешно отправлены");
-                        } catch (Exception e) {
+                        } catch (InterruptedException | ExecutionException e) {
                             log.warn("Не удалось записать снапшот ", e);
                         }
 
                     });
                 }
-                //consumer.commitAsync();
             }
         } catch (WakeupException ignored) {
             // Игнорируем при выключении
