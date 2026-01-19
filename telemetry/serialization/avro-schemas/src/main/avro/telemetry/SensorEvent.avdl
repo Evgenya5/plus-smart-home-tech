@@ -36,7 +36,7 @@ protocol SensorEventProtocol {
     } payload;
  }
 
- record SensorEventAvro extends SpecificRecordBase {
+ record SensorEventAvro {
  		string id;
  		string hubId;
  		timestamp_ms timestamp;

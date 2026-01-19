@@ -2,7 +2,6 @@ package ru.yandex.practicum.kafka;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.apache.avro.specific.SpecificRecordBase;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.springframework.boot.context.properties.ConfigurationProperties;
