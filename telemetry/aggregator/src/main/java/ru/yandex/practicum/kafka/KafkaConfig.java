@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.avro.specific.SpecificRecordBase;
+import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
@@ -35,7 +36,7 @@ public class KafkaConfig {
     @Bean
     public KafkaClient kafkaClient(
             KafkaProducer<String, SpecificRecordBase> kafkaProducer,
-            KafkaConsumer<String, SensorEventAvro> kafkaConsumer) {
+            KafkaConsumer<String, SpecificRecordBase> kafkaConsumer) {
 
         return new KafkaClient() {
             @Override
@@ -44,7 +45,7 @@ public class KafkaConfig {
             }
 
             @Override
-            public KafkaConsumer<String, SensorEventAvro> getConsumer() {
+            public Consumer<String, SpecificRecordBase> getConsumer() {
                 return kafkaConsumer;
             }
 
