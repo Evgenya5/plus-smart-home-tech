@@ -45,7 +45,7 @@ public class KafkaConfig {
             }
 
             @Override
-            public Consumer<String, SensorEventAvro> getConsumer() {
+            public KafkaConsumer<String, SensorEventAvro> getConsumer() {
                 return kafkaConsumer;
             }
 
