@@ -36,7 +36,7 @@ public class KafkaConfig {
     @Bean
     public KafkaClient kafkaClient(
             KafkaProducer<String, SpecificRecordBase> kafkaProducer,
-            KafkaConsumer<String, SpecificRecordBase> kafkaConsumer) {
+            KafkaConsumer<String, SensorEventAvro> kafkaConsumer) {
 
         return new KafkaClient() {
             @Override
@@ -45,7 +45,7 @@ public class KafkaConfig {
             }
 
             @Override
-            public Consumer<String, SpecificRecordBase> getConsumer() {
+            public Consumer<String, SensorEventAvro> getConsumer() {
                 return kafkaConsumer;
             }
 

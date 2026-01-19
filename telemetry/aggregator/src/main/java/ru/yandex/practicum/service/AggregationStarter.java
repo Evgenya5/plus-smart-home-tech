@@ -35,7 +35,7 @@ public class AggregationStarter {
     private long pollMillis;
 
     private final Producer<String, SpecificRecordBase> producer;
-    private final Consumer<String, SpecificRecordBase> consumer;
+    private final Consumer<String, SensorEventAvro> consumer;
     private final SnapshotAggregator snapshotAggregator;
 
     public AggregationStarter(KafkaClient kafkaClient, SnapshotAggregator snapshotAggregator) {
@@ -49,9 +49,9 @@ public class AggregationStarter {
         try {
             consumer.subscribe(List.of(sensorsEventsTopic));
             while (true) {
-                ConsumerRecords<String, SpecificRecordBase> records = consumer.poll(Duration.ofMillis(pollMillis));
-                for (ConsumerRecord<String, SpecificRecordBase> record : records) {
-                    SensorEventAvro event = (SensorEventAvro) record.value();
+                ConsumerRecords<String, SensorEventAvro> records = consumer.poll(Duration.ofMillis(pollMillis));
+                for (ConsumerRecord<String, SensorEventAvro> record : records) {
+                    SensorEventAvro event = record.value();
 
                     Optional<SensorsSnapshotAvro> updatedSnapshot = snapshotAggregator.updateState(event);
 

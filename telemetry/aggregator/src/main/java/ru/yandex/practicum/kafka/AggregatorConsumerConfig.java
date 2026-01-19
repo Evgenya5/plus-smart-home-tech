@@ -8,6 +8,7 @@ import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import ru.yandex.practicum.kafka.telemetry.event.SensorEventAvro;
 
 import java.util.Properties;
 
@@ -25,7 +26,7 @@ public class AggregatorConsumerConfig {
     private String valueDeserializer;
 
     @Bean
-    public KafkaConsumer<String, SpecificRecordBase> kafkaConsumer() {
+    public KafkaConsumer<String, SensorEventAvro> kafkaConsumer() {
         Properties config = new Properties();
         config.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         config.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
