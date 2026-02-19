@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS carts (
     cart_state VARCHAR(20) NOT NULL DEFAULT 'ACTIVE'
 );
 
-CREATE TABLE IF NOT EXISTS cart_items (
+CREATE TABLE IF NOT EXISTS cart_products (
     cart_id UUID NOT NULL,
     product_id UUID NOT NULL,
     quantity BIGINT NOT NULL,
