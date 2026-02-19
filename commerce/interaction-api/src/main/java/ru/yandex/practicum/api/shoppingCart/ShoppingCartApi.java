@@ -15,14 +15,14 @@ import java.util.UUID;
 public interface ShoppingCartApi {
 
     @PutMapping
-    ResponseEntity<ShoppingCartDto> addProductsAtShoppingCart(@RequestParam String username,
+    ShoppingCartDto addProductsAtShoppingCart(@RequestParam String username,
                                                               @RequestBody Map<UUID, Long> productQuantities);
 
     @GetMapping
-    ResponseEntity<ShoppingCartDto> getShoppingCartByUser(@RequestParam String username);
+    ShoppingCartDto getShoppingCartByUser(@RequestParam String username);
 
     @PostMapping("change-quantity")
-    ResponseEntity<ShoppingCartDto> changeQuantityInTheBasket(
+    ShoppingCartDto changeQuantityInTheBasket(
             @RequestParam
             String username,
             @Valid @RequestBody ChangeProductQuantityRequest changeQuantity);
@@ -31,6 +31,6 @@ public interface ShoppingCartApi {
     void deactivateShoppingCart(@RequestParam String username);
 
     @PostMapping("/remove")
-    ResponseEntity<ShoppingCartDto> deleteProductsFromShoppingCart(@RequestParam String username,
+    ShoppingCartDto deleteProductsFromShoppingCart(@RequestParam String username,
                                                                    @RequestParam List<UUID> productIds);
 }

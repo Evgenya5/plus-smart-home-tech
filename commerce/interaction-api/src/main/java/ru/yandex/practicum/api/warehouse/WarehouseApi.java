@@ -1,7 +1,6 @@
 package ru.yandex.practicum.api.warehouse;
 
 import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -16,14 +15,14 @@ import ru.yandex.practicum.DTO.warehouse.NewProductInWarehouseRequest;
 public interface WarehouseApi {
 
     @PutMapping
-    ResponseEntity<Void> addProduct(@RequestBody NewProductInWarehouseRequest newProduct);
+    void addProduct(@RequestBody NewProductInWarehouseRequest newProduct);
 
     @PostMapping("/check")
-    ResponseEntity<BookedProductsDto> checkProductQuantityEnough(@RequestBody ShoppingCartDto shoppingCartDto);
+    BookedProductsDto checkProductQuantityEnough(@RequestBody ShoppingCartDto shoppingCartDto);
 
     @PostMapping("/add")
     void addProductToWarehouse(@RequestBody AddProductToWarehouseRequest request);
 
     @GetMapping("/address")
-    ResponseEntity<AddressDto> getWarehouseAddress();
+    AddressDto getWarehouseAddress();
 }
