@@ -2,7 +2,7 @@ services:
 
   commerce-db:
     image: postgres:16.1
-    container_name: postgres_db
+    container_name: commerce-db
     ports:
       - "5433:5432"
     environment:
