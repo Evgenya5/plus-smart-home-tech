@@ -59,7 +59,7 @@ class ShoppingCartServiceImpl implements ShoppingCartService {
         if (!CartState.DEACTIVATE.equals(shoppingCart.getCartState())) {
             ShoppingCartDto shoppingCartDto = mapper.toDto(shoppingCart);
             try {
-                warehouseApi.checkQuantityOfGoodsInStock(shoppingCartDto);
+                warehouseApi.checkProductQuantityEnough(shoppingCartDto);
             } catch (FeignException e) {
                 log.error("Ошибка при проверке наличия товаров на складе: {}", e.getMessage());
 
@@ -113,7 +113,7 @@ class ShoppingCartServiceImpl implements ShoppingCartService {
         if (!CartState.DEACTIVATE.equals(shoppingCart.getCartState())) {
             if (shoppingCart.getProducts().get(changeQuantity.getProductId()) < changeQuantity.getNewQuantity()) {
                 try {
-                    warehouseApi.checkQuantityOfGoodsInStock(
+                    warehouseApi.checkProductQuantityEnough(
                             ShoppingCartDto.builder()
                                     .shoppingCartId(shoppingCart.getShoppingCartId())
                                     .products(Map.of(changeQuantity.getProductId(), changeQuantity.getNewQuantity()))
