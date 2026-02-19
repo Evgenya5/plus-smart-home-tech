@@ -37,20 +37,9 @@ public class ShoppingStoreServiceImpl implements ShoppingStoreService {
     @Transactional
     public ProductDto createProduct(ProductDto dto) {
 
-        if (dto.getProductId() != null) {
-
-            if (repository.existsById(dto.getProductId())) {
-                return mapper.toDto(repository.findById(dto.getProductId()).orElseThrow(
-                        () -> new ProductNotFoundException("Product not found")));
-            }
-
-            throw new IllegalArgumentException("Создание товара с установленным ID " + dto.getProductId() +
-                    "не допускается.");
-        }
-
-        Product newProduct = repository.save(mapper.toEntity(dto));
-        log.info("add product with ID: {}", newProduct.getProductId());
-        return mapper.toDto(newProduct);
+        Product product = mapper.toEntity(dto);
+        Product savedProduct = repository.save(product);
+        return mapper.toDto(savedProduct);
     }
 
     @Override

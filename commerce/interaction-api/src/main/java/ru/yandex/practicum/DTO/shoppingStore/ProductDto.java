@@ -1,9 +1,6 @@
 package ru.yandex.practicum.DTO.shoppingStore;
 
-import jakarta.validation.constraints.Digits;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -39,7 +36,7 @@ public class ProductDto {
 
     private ProductCategory productCategory;
 
-    @Min(value = 1, message = "Мин. цена 1.")
-    @Digits(integer = 10, fraction = 2)
+    @NotNull(message = "Price is required")
+    @DecimalMin(value = "1.0", message = "Price must be at least 1.0")
     private BigDecimal price;
 }
