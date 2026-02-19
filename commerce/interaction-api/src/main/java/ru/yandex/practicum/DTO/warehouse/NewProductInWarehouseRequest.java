@@ -24,4 +24,8 @@ public class NewProductInWarehouseRequest {
     @NotNull
     @Min(value = 1)
     private Double weight;
+
+    @Min(value = 0, message = "Количество товара не может быть отрицательным.")
+    @Builder.Default
+    private Long quantity = 0L;
 }
