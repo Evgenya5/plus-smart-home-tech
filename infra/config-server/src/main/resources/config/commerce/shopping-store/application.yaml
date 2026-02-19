@@ -1,11 +1,16 @@
 spring:
-  application:
-    name: shopping-store
+  server:
+    port: 0
 
-  output:
-    ansi:
-      enabled: always
-
+  datasource:
+    url: jdbc:postgresql://localhost:5433/commerce_db
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      connection-timeout: 30000
+      maximum-pool-size: 10
+      minimum-idle: 5
   jpa:
     hibernate:
       ddl-auto: none
@@ -17,16 +22,7 @@ spring:
   sql:
     init:
       mode: always
-
-  datasource:
-    url: jdbc:postgresql://localhost:5433/commerce_db
-    username: postgres
-    password: postgres
-    driver-class-name: org.postgresql.Driver
-    hikari:
-      connection-timeout: 30000
-      maximum-pool-size: 10
-      minimum-idle: 5
+      schema-locations: classpath:schema.sql
 
 logging:
   level:
