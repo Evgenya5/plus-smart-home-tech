@@ -23,9 +23,9 @@ public class WarehouseController {
 
     @PutMapping
     @ResponseStatus(HttpStatus.OK)
-    public void addProduct(@Valid @RequestBody NewProductInWarehouseRequest newProduct) {
+    public void addProduct(@RequestBody NewProductInWarehouseRequest newProduct) {
         log.info("PUT. addProduct");
-        service.addNewProductToTheWarehouse(newProduct);
+        service.addNewProductToWarehouse(newProduct);
     }
 
     @PostMapping("/check")

@@ -16,7 +16,7 @@ import ru.yandex.practicum.DTO.warehouse.NewProductInWarehouseRequest;
 public interface WarehouseApi {
 
     @PutMapping
-    void addProduct(@RequestBody NewProductInWarehouseRequest newProduct);
+    ResponseEntity<Void> addProduct(@RequestBody NewProductInWarehouseRequest newProduct);
 
     @PostMapping("/check")
     ResponseEntity<BookedProductsDto> checkProductQuantityEnough(@RequestBody ShoppingCartDto shoppingCartDto);

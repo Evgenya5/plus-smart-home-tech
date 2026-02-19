@@ -37,7 +37,7 @@ public class WarehouseServiceImpl implements WarehouseService {
 
     @Override
     @Transactional
-    public void addNewProductToTheWarehouse(NewProductInWarehouseRequest newProduct) {
+    public void addNewProductToWarehouse(NewProductInWarehouseRequest newProduct) {
 
         if (repository.existsById(newProduct.getProductId())) {
             throw new ProductAlreadyExistInWarehouseException("Продукт уже существует.");
