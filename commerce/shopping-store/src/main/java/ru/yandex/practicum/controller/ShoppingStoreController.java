@@ -28,14 +28,12 @@ public class ShoppingStoreController {
     private final ShoppingStoreService service;
 
     @PutMapping
-    @ResponseStatus(HttpStatus.OK)
     public ProductDto addProduct(@Valid @RequestBody ProductDto productDto) {
         log.info("PUT. addProduct");
         return service.createProduct(productDto);
     }
 
     @GetMapping("/{productId}")
-    @ResponseStatus(HttpStatus.OK)
     public ProductDto getProductById(@PathVariable
                                      @NotNull(message = "ID продукта != null.") UUID productId) {
         log.info("GET. getProductById ID - {}", productId);
@@ -43,7 +41,6 @@ public class ShoppingStoreController {
     }
 
     @GetMapping
-    @ResponseStatus(HttpStatus.OK)
     public Page<ProductDto> getProductsByCategory(
             @NotNull(message = "Категория продукта != null.")
             @RequestParam ProductCategory category,
@@ -54,14 +51,12 @@ public class ShoppingStoreController {
     }
 
     @PostMapping
-    @ResponseStatus(HttpStatus.OK)
     public ProductDto updateProduct(@Valid @RequestBody ProductDto productDto) {
         log.info("POST. updateProduct ID - {}", productDto.getProductId());
         return service.updateProduct(productDto);
     }
 
     @PostMapping("/quantityState")
-    @ResponseStatus(HttpStatus.OK)
     public boolean setQuantityState(UUID productId, QuantityState quantityState) {
         log.info("POST. setQuantityState ID - {} quantity = {}",
                 productId, quantityState);
@@ -72,7 +67,6 @@ public class ShoppingStoreController {
     }
 
     @PostMapping("/removeProductFromStore")
-    @ResponseStatus(HttpStatus.OK)
     public boolean removeProduct(@RequestBody
                                  @NotNull(message = "ID продукта != null.") UUID productId) {
         log.info("POST. removeProduct ID - {}", productId);

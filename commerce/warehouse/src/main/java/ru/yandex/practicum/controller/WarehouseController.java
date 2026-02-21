@@ -22,30 +22,26 @@ public class WarehouseController {
     private final WarehouseService service;
 
     @PutMapping
-    @ResponseStatus(HttpStatus.OK)
     public void addProduct(@RequestBody NewProductInWarehouseRequest newProduct) {
         log.info("PUT. addProduct");
         service.addNewProductToWarehouse(newProduct);
     }
 
     @PostMapping("/check")
-    @ResponseStatus(HttpStatus.OK)
     public BookedProductsDto checkProductQuantityEnough(@Valid @RequestBody ShoppingCartDto shoppingCartDto) {
         log.info("POST. checkProductQuantityEnough");
         return service.checkProductQuantityEnough(shoppingCartDto);
     }
 
     @PostMapping("/add")
-    @ResponseStatus(HttpStatus.OK)
     public void addProductToWarehouse(@Valid @RequestBody AddProductToWarehouseRequest request) {
         log.debug("POST. addProductToWarehouse");
         service.addProductToWarehouse(request);
     }
 
     @GetMapping("/address")
-    @ResponseStatus(HttpStatus.OK)
     public AddressDto getWarehouseAddress() {
-        log.info("Запрос адреса склада");
+        log.info("GET. getWarehouseAddress");
         return service.getWarehouseAddress();
     }
 }

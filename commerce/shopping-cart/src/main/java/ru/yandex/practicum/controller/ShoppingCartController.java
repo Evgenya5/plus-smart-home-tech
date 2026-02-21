@@ -25,16 +25,15 @@ public class ShoppingCartController {
     private final ShoppingCartService service;
 
     @PutMapping
-    @ResponseStatus(HttpStatus.OK)
     public ShoppingCartDto addProductsAtShoppingCart(@RequestParam
                                                      @NotBlank(message = "Имя пользователя != null.") String username,
-                                                     @RequestBody(required = false) Map<UUID, Integer> products) {
+                                                     @RequestBody
+                                                     @NotNull Map<UUID, Integer> products) {
         log.info("PUT. addProductsAtShoppingCart: {}", username);
         return service.addProductsAtShoppingCart(username, products);
     }
 
     @GetMapping
-    @ResponseStatus(HttpStatus.OK)
     public ShoppingCartDto getShoppingCartByUser(@RequestParam
                                                  @NotBlank(message = "Имя пользователя != null.") String username) {
         log.info("GET. getShoppingCartByUser: {}", username);
@@ -42,7 +41,6 @@ public class ShoppingCartController {
     }
 
     @DeleteMapping
-    @ResponseStatus(HttpStatus.OK)
     public void deactivateShoppingCart(@RequestParam
                                             @NotBlank(message = "Имя пользователя != null.") String username) {
         log.info("DELETE. deactivateShoppingCart: {}", username);
@@ -51,7 +49,6 @@ public class ShoppingCartController {
 
 
     @PostMapping("change-quantity")
-    @ResponseStatus(HttpStatus.OK)
     public ShoppingCartDto changeQuantityInTheBasket(
             @RequestParam
             @NotBlank(message = "Имя пользователя != null.") String username,
@@ -61,7 +58,6 @@ public class ShoppingCartController {
     }
 
     @PostMapping("/remove")
-    @ResponseStatus(HttpStatus.OK)
     public ShoppingCartDto deleteProductsFromShoppingCart(@RequestParam
                                                           @NotBlank(message = "Имя пользователя != null.") String username,
                                                           @RequestBody
