@@ -52,12 +52,9 @@ class ShoppingCartServiceImpl implements ShoppingCartService {
                 currentProducts.put(productId, currentQuantity + quantity);
             });
             shoppingCart.setProducts(currentProducts);
-            //ShoppingCartDto shoppingCartDto = mapper.toDto(shoppingCart);
-            //mapper.addOnlyNewProducts(shoppingCartDto, shoppingCart);
             String idsList = shoppingCart.getProducts().keySet().stream()
                     .map(UUID::toString)
                     .collect(Collectors.joining(", "));
-            //log.info(shoppingCartDto.toString());
             checkProductQuantityEnoughForShoppingCart(mapper.toDto(shoppingCart));
             repository.save(shoppingCart);
             log.info("Товар(-ы) c ID {} успешно добавлен.", idsList);

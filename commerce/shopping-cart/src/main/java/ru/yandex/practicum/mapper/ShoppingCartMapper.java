@@ -11,12 +11,4 @@ public interface ShoppingCartMapper {
 
     ShoppingCartDto toDto(ShoppingCart shoppingCart);
 
-    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-    @Mapping(target = "shoppingCartId", ignore = true)
-    default void addOnlyNewProducts(ShoppingCartDto dto, @MappingTarget ShoppingCart cart) {
-
-        dto.getProducts().forEach((productId, quantity) ->
-                cart.getProducts().putIfAbsent(productId, quantity)
-        );
-    }
 }
