@@ -16,10 +16,7 @@ import ru.yandex.practicum.interfaces.ShoppingCartService;
 import ru.yandex.practicum.mapper.ShoppingCartMapper;
 import ru.yandex.practicum.model.ShoppingCart;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -130,7 +127,7 @@ class ShoppingCartServiceImpl implements ShoppingCartService {
 
     private ShoppingCart findByUsernameOrCreateNew(String username) {
         log.info("Попытка получить корзину пользователя.");
-        return repository.findByUsername(username).orElse((createNewCart(username, new HashMap<>())));
+        return repository.findByUsername(username).orElseGet(() -> createNewCart(username, new HashMap<>()));
     }
 
     private ShoppingCart createNewCart(String username, Map<UUID, Integer> newProducts) {
