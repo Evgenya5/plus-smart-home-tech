@@ -71,14 +71,8 @@ class ShoppingCartServiceImpl implements ShoppingCartService {
             String idsList = shoppingCart.getProducts().keySet().stream()
                     .map(UUID::toString)
                     .collect(Collectors.joining(", "));
+            log.info("Товар(-ы) c ID {} успешно добавлен.", idsList);
 
-            if (shoppingCart.getProducts().size() == 1) {
-                log.info("Товар c ID {} успешно добавлен.",
-                        idsList);
-            } else {
-                log.info("Товары c ID: {} успешно добавлены.",
-                        idsList);
-            }
             // Если статус DEACTIVATE - выводим log и возвращаем корзину без изменений.
         } else {
             log.info(CART_IS_DEACTIVATE, shoppingCart.getShoppingCartId());
@@ -155,14 +149,12 @@ class ShoppingCartServiceImpl implements ShoppingCartService {
         return mapper.toDto(shoppingCart);
     }
 
-    @Transactional(readOnly = true)
     private ShoppingCart findByUsernameOrElseThrow(String username) {
         log.info("Попытка получить корзину пользователя.");
         return repository.findByUsername(username).orElseThrow(() ->
                 new NotAuthorizedException("Корзина пользователя " + username + " не найдена."));
     }
 
-    @Transactional
     private ShoppingCart createNewCart(String username, Map<UUID, Integer> newProducts) {
         ShoppingCart shoppingCart = ShoppingCart.builder()
                 .username(username)

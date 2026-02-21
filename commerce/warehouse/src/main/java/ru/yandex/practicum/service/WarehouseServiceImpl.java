@@ -138,7 +138,6 @@ public class WarehouseServiceImpl implements WarehouseService {
                 .build();
     }
 
-    @Transactional(readOnly = true)
     private void validIdProduct(UUID idProduct) {
         if (!repository.existsById(idProduct)) {
             throw new NotFoundProductInWarehouseException("Продукт c ID: " + idProduct + " не найден на складе.");
