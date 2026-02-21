@@ -1,6 +1,7 @@
 package ru.yandex.practicum.service;
 
 import feign.FeignException;
+import jakarta.persistence.criteria.CriteriaBuilder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -45,12 +46,20 @@ class ShoppingCartServiceImpl implements ShoppingCartService {
         shoppingCart = findByUsernameOrCreateNew(username);
         // Если найденная корзина имеет статус отличный от DEACTIVATE - добавляем в нее новые товары.
         if (!CartState.DEACTIVATE.equals(shoppingCart.getCartState())) {
-            ShoppingCartDto shoppingCartDto = mapper.toDto(shoppingCart);
-            mapper.addOnlyNewProducts(shoppingCartDto, shoppingCart);
+            Map<UUID, Integer> currentProducts = shoppingCart.getProducts();
+            products.forEach((productId, quantity) -> {
+                Integer currentQuantity = currentProducts.getOrDefault(productId, 0);
+                currentProducts.put(productId, currentQuantity + quantity);
+            });
+            shoppingCart.setProducts(currentProducts);
+            //ShoppingCartDto shoppingCartDto = mapper.toDto(shoppingCart);
+            //mapper.addOnlyNewProducts(shoppingCartDto, shoppingCart);
             String idsList = shoppingCart.getProducts().keySet().stream()
                     .map(UUID::toString)
                     .collect(Collectors.joining(", "));
-            checkProductQuantityEnoughForShoppingCart(shoppingCartDto);
+            //log.info(shoppingCartDto.toString());
+            checkProductQuantityEnoughForShoppingCart(mapper.toDto(shoppingCart));
+            repository.save(shoppingCart);
             log.info("Товар(-ы) c ID {} успешно добавлен.", idsList);
             // Если статус DEACTIVATE - выводим log и возвращаем корзину без изменений.
         } else {
