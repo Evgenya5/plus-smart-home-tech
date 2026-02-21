@@ -46,11 +46,11 @@ class ShoppingCartServiceImpl implements ShoppingCartService {
         // Если найденная корзина имеет статус отличный от DEACTIVATE - добавляем в нее новые товары.
         if (!CartState.DEACTIVATE.equals(shoppingCart.getCartState())) {
             ShoppingCartDto shoppingCartDto = mapper.toDto(shoppingCart);
-            checkProductQuantityEnoughForShoppingCart(shoppingCartDto);
             mapper.addOnlyNewProducts(shoppingCartDto, shoppingCart);
             String idsList = shoppingCart.getProducts().keySet().stream()
                     .map(UUID::toString)
                     .collect(Collectors.joining(", "));
+            checkProductQuantityEnoughForShoppingCart(shoppingCartDto);
             log.info("Товар(-ы) c ID {} успешно добавлен.", idsList);
             // Если статус DEACTIVATE - выводим log и возвращаем корзину без изменений.
         } else {

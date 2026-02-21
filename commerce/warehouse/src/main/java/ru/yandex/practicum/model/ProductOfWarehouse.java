@@ -31,4 +31,8 @@ public class ProductOfWarehouse {
 
     @Column(name = "quantity", nullable = false)
     Long quantity;
+
+    public void addQuantity(Long addQuantity) {
+        this.quantity += addQuantity;
+    }
 }

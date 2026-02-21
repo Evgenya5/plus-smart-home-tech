@@ -118,7 +118,7 @@ public class WarehouseServiceImpl implements WarehouseService {
         log.debug("addProductToWarehouse");
         validIdProduct(request.getProductId());
         ProductOfWarehouse product = repository.getReferenceById(request.getProductId());
-        product.setQuantity(product.getQuantity() + request.getQuantity());
+        product.addQuantity(request.getQuantity());
         repository.save(product);
     }
 
