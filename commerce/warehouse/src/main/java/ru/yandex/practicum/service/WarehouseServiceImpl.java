@@ -9,6 +9,7 @@ import ru.yandex.practicum.DTO.warehouse.AddProductToWarehouseRequest;
 import ru.yandex.practicum.DTO.warehouse.AddressDto;
 import ru.yandex.practicum.DTO.warehouse.BookedProductsDto;
 import ru.yandex.practicum.DTO.warehouse.NewProductInWarehouseRequest;
+import ru.yandex.practicum.exception.warehouse.EmptyShoppingCart;
 import ru.yandex.practicum.exception.warehouse.NotFoundProductInWarehouseException;
 import ru.yandex.practicum.exception.warehouse.ProductInShoppingCartNorEnoughInWarehouse;
 import ru.yandex.practicum.exception.warehouse.ProductAlreadyExistInWarehouseException;
@@ -53,7 +54,7 @@ public class WarehouseServiceImpl implements WarehouseService {
 
         if (shoppingCartDto.getShoppingCartId() == null || shoppingCartDto.getProducts().isEmpty()) {
             log.info("Для передана пустая корзина.");
-            return emptyCart();
+            throw new EmptyShoppingCart("передана пустая корзина");
         }
 
         Map<UUID, Integer> requestedProducts = shoppingCartDto.getProducts();
@@ -95,14 +96,15 @@ public class WarehouseServiceImpl implements WarehouseService {
         return BookedProductsDto.builder()
 
                 .deliveryWeight(verifiedProducts.stream()
-                        .mapToDouble(ProductOfWarehouse::getWeight)
+                        .mapToDouble((product) -> product.getWeight()*product.getQuantity())
                         .sum())
 
                 .deliveryVolume(verifiedProducts.stream()
                         .mapToDouble(product ->
                                 product.getDimension().getWidth() *
                                         product.getDimension().getHeight() *
-                                        product.getDimension().getDepth())
+                                        product.getDimension().getDepth() *
+                                        product.getQuantity())
                         .sum())
 
                 .fragile(verifiedProducts.stream()
@@ -116,7 +118,8 @@ public class WarehouseServiceImpl implements WarehouseService {
         log.debug("addProductToWarehouse");
         validIdProduct(request.getProductId());
         ProductOfWarehouse product = repository.getReferenceById(request.getProductId());
-        product.setQuantity(request.getQuantity());
+        product.setQuantity(product.getQuantity() + request.getQuantity());
+        repository.save(product);
     }
 
     @Override
@@ -127,14 +130,6 @@ public class WarehouseServiceImpl implements WarehouseService {
                 .street(CURRENT_ADDRESS)
                 .house(CURRENT_ADDRESS)
                 .flat(CURRENT_ADDRESS)
-                .build();
-    }
-
-    private BookedProductsDto emptyCart() {
-        return BookedProductsDto.builder()
-                .deliveryWeight(0.0)
-                .deliveryVolume(0.0)
-                .fragile(false)
                 .build();
     }
 

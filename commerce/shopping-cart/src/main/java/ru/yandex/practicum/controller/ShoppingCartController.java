@@ -29,7 +29,7 @@ public class ShoppingCartController {
     public ShoppingCartDto addProductsAtShoppingCart(@RequestParam
                                                      @NotBlank(message = "Имя пользователя != null.") String username,
                                                      @RequestBody
-                                                     Map<UUID, Integer> products) {
+                                                     @NotNull Map<UUID, Integer> products) {
         log.info("PUT. addProductsAtShoppingCart: {}", username);
         return service.addProductsAtShoppingCart(username, products);
     }

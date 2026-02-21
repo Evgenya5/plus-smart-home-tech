@@ -15,6 +15,8 @@ import ru.yandex.practicum.interfaces.ShoppingCartRepository;
 import ru.yandex.practicum.interfaces.ShoppingCartService;
 import ru.yandex.practicum.mapper.ShoppingCartMapper;
 import ru.yandex.practicum.model.ShoppingCart;
+
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -35,13 +37,7 @@ class ShoppingCartServiceImpl implements ShoppingCartService {
     @Override
     @Transactional(readOnly = true)
     public ShoppingCartDto getShoppingCartByUser(String username) {
-        return repository.findByUsername(username)
-                .map(cart -> {
-                            log.info("Найдена корзина c ID: {}", cart.getShoppingCartId());
-                            return mapper.toDto(cart);
-                        }
-                )
-                .orElseThrow(() -> new NotAuthorizedException("Корзина для пользователя " + username + " не найдена"));
+        return mapper.toDto(findByUsernameOrCreateNew(username));
     }
 
     @Override
@@ -49,11 +45,7 @@ class ShoppingCartServiceImpl implements ShoppingCartService {
     public ShoppingCartDto addProductsAtShoppingCart(String username, Map<UUID, Integer> products) {
         ShoppingCart shoppingCart;
         // Если у корзины, куда добавляются новые товары, нет id - создаем новую корзину.
-        try {
-            shoppingCart = findByUsernameOrElseThrow(username);
-        } catch (NotAuthorizedException e) {
-            shoppingCart = createNewCart(username, products);
-        }
+        shoppingCart = findByUsernameOrCreateNew(username);
         // Если найденная корзина имеет статус отличный от DEACTIVATE - добавляем в нее новые товары.
         if (!CartState.DEACTIVATE.equals(shoppingCart.getCartState())) {
             ShoppingCartDto shoppingCartDto = mapper.toDto(shoppingCart);
@@ -63,7 +55,6 @@ class ShoppingCartServiceImpl implements ShoppingCartService {
                     .map(UUID::toString)
                     .collect(Collectors.joining(", "));
             log.info("Товар(-ы) c ID {} успешно добавлен.", idsList);
-
             // Если статус DEACTIVATE - выводим log и возвращаем корзину без изменений.
         } else {
             log.info(CART_IS_DEACTIVATE, shoppingCart.getShoppingCartId());
@@ -90,7 +81,7 @@ class ShoppingCartServiceImpl implements ShoppingCartService {
     @Override
     @Transactional
     public ShoppingCartDto changeQuantityInTheBasket(String username, ChangeProductQuantityRequest changeQuantity) {
-        ShoppingCart shoppingCart = findByUsernameOrElseThrow(username);
+        ShoppingCart shoppingCart = findByUsernameOrCreateNew(username);
 
         if (!shoppingCart.getProducts().containsKey(changeQuantity.getProductId())) {
             throw new NoProductsInShoppingCartException("Корзина не содержит изменяемые товары.");
@@ -135,6 +126,11 @@ class ShoppingCartServiceImpl implements ShoppingCartService {
         log.info("Попытка получить корзину пользователя.");
         return repository.findByUsername(username).orElseThrow(() ->
                 new NotAuthorizedException("Корзина пользователя " + username + " не найдена."));
+    }
+
+    private ShoppingCart findByUsernameOrCreateNew(String username) {
+        log.info("Попытка получить корзину пользователя.");
+        return repository.findByUsername(username).orElse((createNewCart(username, new HashMap<>())));
     }
 
     private ShoppingCart createNewCart(String username, Map<UUID, Integer> newProducts) {
