@@ -15,7 +15,6 @@ import ru.yandex.practicum.interfaces.ShoppingCartRepository;
 import ru.yandex.practicum.interfaces.ShoppingCartService;
 import ru.yandex.practicum.mapper.ShoppingCartMapper;
 import ru.yandex.practicum.model.ShoppingCart;
-
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -58,15 +57,7 @@ class ShoppingCartServiceImpl implements ShoppingCartService {
         // Если найденная корзина имеет статус отличный от DEACTIVATE - добавляем в нее новые товары.
         if (!CartState.DEACTIVATE.equals(shoppingCart.getCartState())) {
             ShoppingCartDto shoppingCartDto = mapper.toDto(shoppingCart);
-            try {
-                warehouseApi.checkProductQuantityEnough(shoppingCartDto);
-            } catch (FeignException e) {
-                log.error("Ошибка при проверке наличия товаров на складе: {}", e.getMessage());
-
-                if (e.status() == 400) {
-                    throw new IllegalArgumentException("Товары недоступны в запрашиваемом количестве");
-                }
-            }
+            checkProductQuantityEnoughForShoppingCart(shoppingCartDto);
             mapper.addOnlyNewProducts(shoppingCartDto, shoppingCart);
             String idsList = shoppingCart.getProducts().keySet().stream()
                     .map(UUID::toString)
@@ -106,20 +97,11 @@ class ShoppingCartServiceImpl implements ShoppingCartService {
         }
         if (!CartState.DEACTIVATE.equals(shoppingCart.getCartState())) {
             if (shoppingCart.getProducts().get(changeQuantity.getProductId()) < changeQuantity.getNewQuantity()) {
-                try {
-                    warehouseApi.checkProductQuantityEnough(
-                            ShoppingCartDto.builder()
-                                    .shoppingCartId(shoppingCart.getShoppingCartId())
-                                    .products(Map.of(changeQuantity.getProductId(), changeQuantity.getNewQuantity()))
-                                    .build()
-                    );
-                } catch (FeignException e) {
-                    log.error("Ошибка при проверке наличия товаров на складе: {}", e.getMessage());
-
-                    if (e.status() == 400) {
-                        throw new IllegalArgumentException("Товары недоступны в запрашиваемом количестве");
-                    }
-                }
+                checkProductQuantityEnoughForShoppingCart(ShoppingCartDto.builder()
+                        .shoppingCartId(shoppingCart.getShoppingCartId())
+                        .products(Map.of(changeQuantity.getProductId(), changeQuantity.getNewQuantity()))
+                        .build()
+                );
             }
             shoppingCart.getProducts().put(
                     changeQuantity.getProductId(),
@@ -165,5 +147,17 @@ class ShoppingCartServiceImpl implements ShoppingCartService {
         log.info("Создана новая корзина с ID: {} для пользователя с именем: {}",
                 shoppingCart.getShoppingCartId(), username);
         return shoppingCart;
+    }
+
+    private void checkProductQuantityEnoughForShoppingCart(ShoppingCartDto shoppingCartDto) {
+        try {
+            warehouseApi.checkProductQuantityEnough(shoppingCartDto);
+        } catch (FeignException e) {
+            log.error("Ошибка при проверке наличия товаров на складе: {}", e.getMessage());
+
+            if (e.status() == 400) {
+                throw new IllegalArgumentException("Товары недоступны в запрашиваемом количестве");
+            }
+        }
     }
 }
