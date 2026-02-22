@@ -12,4 +12,18 @@
     <artifactId>commerce</artifactId>
     <packaging>pom</packaging>
 
+    <properties>
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <org.mapstruct.version>1.5.5.Final</org.mapstruct.version>
+    </properties>
+
+    <modules>
+        <module>interaction-api</module>
+        <module>shopping-cart</module>
+        <module>shopping-store</module>
+        <module>warehouse</module>
+    </modules>
+
 </project>
