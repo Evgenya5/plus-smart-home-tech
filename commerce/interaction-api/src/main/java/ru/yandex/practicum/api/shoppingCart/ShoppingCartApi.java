@@ -2,7 +2,6 @@ package ru.yandex.practicum.api.shoppingCart;
 
 import jakarta.validation.Valid;
 import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.DTO.shoppingCart.ChangeProductQuantityRequest;
 import ru.yandex.practicum.DTO.shoppingCart.ShoppingCartDto;

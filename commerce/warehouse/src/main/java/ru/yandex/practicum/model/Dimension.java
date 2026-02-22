@@ -15,4 +15,8 @@ public class Dimension {
     private Double width;
     private Double height;
     private Double depth;
+
+    public Double getVolume() {
+        return width * height * depth;
+    }
 }
