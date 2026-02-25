@@ -1,7 +1,8 @@
 package ru.yandex.practicum.service;
 
+import feign.FeignException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.yandex.practicum.DTO.payment.PaymentDto;
@@ -17,6 +18,7 @@ import ru.yandex.practicum.DTO.order.ProductReturnRequest;
 import ru.yandex.practicum.DTO.warehouse.AddressDto;
 import ru.yandex.practicum.DTO.warehouse.AssemblyProductsForOrderRequest;
 import ru.yandex.practicum.DTO.warehouse.BookedProductsDto;
+import ru.yandex.practicum.exception.InternalErrorByUsedService;
 import ru.yandex.practicum.model.Order;
 import ru.yandex.practicum.exception.order.*;
 import ru.yandex.practicum.mapper.OrderMapper;
@@ -28,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -40,6 +43,7 @@ public class OrderService {
     private final DeliveryApi deliveryApi;
 
     public List<OrderDto> getClientOrders(String username) {
+        log.debug("start getClientOrders by name {}", username);
         List<Order> orders = repository.findByUsername(username);
         return mapper.toDtoList(orders);
     }
@@ -59,10 +63,15 @@ public class OrderService {
                 .orderId(saved.getOrderId())
                 .products(saved.getProducts())
                 .build();
-        BookedProductsDto deliveryInfo = warehouseApi.assemblyProductsForOrder(assemblyRequest);
+        BookedProductsDto deliveryInfo;
+        try {
+            deliveryInfo = warehouseApi.assemblyProductsForOrder(assemblyRequest);
+        } catch (FeignException e) {
+            throw new InternalErrorByUsedService("warehouse");
+        }
 
         if (deliveryInfo == null) {
-            throw new NoSpecifiedProductInWarehouseException();
+            throw new NoSpecifiedProductInWarehouseException("Нет заказываемого товара на складе");
         }
         saved.setDeliveryWeight(deliveryInfo.getDeliveryWeight());
         saved.setDeliveryVolume(deliveryInfo.getDeliveryVolume());
@@ -87,7 +96,7 @@ public class OrderService {
     public OrderDto payment(UUID orderId) {
         Order order = getOrderOrThrow(orderId);
         if (order.getPaymentId() == null) {
-            validateStateTransition(order.getState(), OrderState.ON_PAYMENT,
+            validateStateTransition(order.getState(),
                     List.of(OrderState.ASSEMBLED));
             OrderDto orderDto = mapper.toDto(order);
             PaymentDto paymentDto = paymentApi.payment(orderDto);
@@ -128,11 +137,15 @@ public class OrderService {
     @Transactional
     public OrderDto productReturn(ProductReturnRequest request) {
         Order order = getOrderOrThrow(request.getOrderId());
-        validateStateTransition(order.getState(), OrderState.PRODUCT_RETURNED,
+        validateStateTransition(order.getState(),
                 List.of(OrderState.COMPLETED, OrderState.DELIVERED));
         validateReturnedProducts(order.getProducts(), request.getProducts());
         if (request.getProducts() != null && !request.getProducts().isEmpty()) {
-            warehouseApi.acceptReturn(request.getProducts());
+            try {
+                warehouseApi.acceptReturn(request.getProducts());
+            } catch (FeignException e) {
+                throw new InternalErrorByUsedService("warehouse");
+            }
         }
         return applyOrderStateAndSave(order, OrderState.PRODUCT_RETURNED);
     }
@@ -140,7 +153,7 @@ public class OrderService {
     @Transactional
     public OrderDto calculateDeliveryCost(UUID orderId) {
         Order order = getOrderOrThrow(orderId);
-        validateStateTransition(order.getState(), OrderState.NEW,
+        validateStateTransition(order.getState(),
                 List.of(OrderState.NEW, OrderState.ASSEMBLED));
         BookedProductsDto deliveryInfo;
         try {
@@ -148,10 +161,15 @@ public class OrderService {
                     .orderId(order.getOrderId())
                     .products(order.getProducts())
                     .build();
-            BookedProductsDto bookedProducts = warehouseApi.assemblyProductsForOrder(assemblyRequest);
+            BookedProductsDto bookedProducts;
+            try {
+                bookedProducts = warehouseApi.assemblyProductsForOrder(assemblyRequest);
+            } catch (FeignException e) {
+                throw new InternalErrorByUsedService("warehouse");
+            }
 
             if (bookedProducts == null) {
-                throw new NoSpecifiedProductInWarehouseException();
+                throw new NoSpecifiedProductInWarehouseException("Нет заказываемого товара на складе");
             }
             deliveryInfo = bookedProducts;
         } catch (Exception e) {
@@ -161,7 +179,12 @@ public class OrderService {
         order.setDeliveryVolume(deliveryInfo.getDeliveryVolume());
         order.setFragile(deliveryInfo.getFragile() != null ? deliveryInfo.getFragile() : false);
         OrderDto orderDto = mapper.toDto(order);
-        BigDecimal deliveryPrice = deliveryApi.deliveryCost(orderDto);
+        BigDecimal deliveryPrice;
+        try {
+            deliveryPrice = deliveryApi.deliveryCost(orderDto);
+        } catch (FeignException e) {
+            throw new InternalErrorByUsedService("delivery");
+        }
         if (deliveryPrice == null) {
             throw new DeliveryCalculationException("Не удалось рассчитать стоимость доставки для заказа " + orderId);
         }
@@ -178,10 +201,20 @@ public class OrderService {
     public OrderDto calculateTotalCost(UUID orderId) {
         Order order = getOrderOrThrow(orderId);
         OrderDto orderDto = mapper.toDto(order);
-        BigDecimal productPrice = paymentApi.productCost(orderDto);
+        BigDecimal productPrice;
+        try {
+            productPrice = paymentApi.productCost(orderDto);
+        } catch (FeignException e) {
+            throw new InternalErrorByUsedService("payment");
+        }
         order.setProductPrice(productPrice);
         orderDto.setProductPrice(productPrice);
-        BigDecimal totalPrice = paymentApi.getTotalCost(orderDto);
+        BigDecimal totalPrice;
+        try {
+            totalPrice = paymentApi.getTotalCost(orderDto);
+        } catch (FeignException e) {
+            throw new InternalErrorByUsedService("payment");
+        }
         order.setTotalPrice(totalPrice);
         Order saved = repository.save(order);
         return mapper.toDto(saved);
@@ -194,7 +227,7 @@ public class OrderService {
 
     private OrderDto transitionOrderStateAndSave(UUID orderId, OrderState newState, List<OrderState> allowedStates) {
         Order order = getOrderOrThrow(orderId);
-        validateStateTransition(order.getState(), newState, allowedStates);
+        validateStateTransition(order.getState(), allowedStates);
         return applyOrderStateAndSave(order, newState);
     }
 
@@ -218,17 +251,31 @@ public class OrderService {
                 .products(products)
                 .state(OrderState.NEW)
                 .build();
-        BigDecimal cost = paymentApi.productCost(orderDto);
+        BigDecimal cost;
+        try {
+            cost = paymentApi.productCost(orderDto);
+        } catch (FeignException e) {
+            throw new InternalErrorByUsedService("payment");
+        }
         if (cost == null) {
-            throw new NoSpecifiedProductInWarehouseException();
+            throw new NoSpecifiedProductInWarehouseException("Нет заказываемого товара на складе");
         }
         return cost;
     }
 
     private void planDeliveryForOrder(Order saved, AddressDto toAddress) {
 
-        AddressDto fromAddress = warehouseApi.getWarehouseAddress();
+        AddressDto fromAddress;
+        try {
+            fromAddress = warehouseApi.getWarehouseAddress();
+        } catch (FeignException e) {
+            throw new InternalErrorByUsedService("warehouse");
+        }
         if (fromAddress == null || toAddress == null) {
+            return;
+        }
+
+        if (saved.getDeliveryId() != null) {
             return;
         }
         DeliveryDto deliveryDto = DeliveryDto.builder()
@@ -240,7 +287,12 @@ public class OrderService {
                 .deliveryWeight(saved.getDeliveryWeight())
                 .fragile(saved.getFragile())
                 .build();
-        DeliveryDto created = deliveryApi.planDelivery(deliveryDto);
+        DeliveryDto created;
+        try {
+            created = deliveryApi.planDelivery(deliveryDto);
+        } catch (FeignException e) {
+            throw new InternalErrorByUsedService("delivery");
+        }
         if (created != null && created.getDeliveryId() != null) {
             saved.setDeliveryId(created.getDeliveryId());
             repository.save(saved);
@@ -266,11 +318,11 @@ public class OrderService {
         }
     }
 
-    private void validateStateTransition(OrderState currentState, OrderState newState, List<OrderState> allowedStates) {
+    private void validateStateTransition(OrderState currentState, List<OrderState> allowedStates) {
         if (!allowedStates.contains(currentState)) {
             throw new InvalidOrderStateException(
-                    String.format("Невозможно перейти из состояния %s в %s. Допустимые состояния: %s",
-                            currentState, newState, allowedStates)
+                    String.format("Текущее состояние недопустимо %s. Допустимые состояния: %s",
+                            currentState, allowedStates)
             );
         }
     }

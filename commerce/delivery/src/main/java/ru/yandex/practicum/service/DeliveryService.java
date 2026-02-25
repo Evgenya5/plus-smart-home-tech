@@ -1,6 +1,7 @@
 package ru.yandex.practicum.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.yandex.practicum.model.AddressEmbeddable;
@@ -15,8 +16,10 @@ import ru.yandex.practicum.enums.delivery.DeliveryState;
 import ru.yandex.practicum.DTO.order.OrderDto;
 import ru.yandex.practicum.DTO.warehouse.ShippedToDeliveryRequest;
 
+import java.math.BigDecimal;
 import java.util.UUID;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class DeliveryService {
@@ -30,6 +33,7 @@ public class DeliveryService {
 
     @Transactional
     public DeliveryDto planDelivery(DeliveryDto request) {
+        log.debug("planDelivery start. Request {} ", request);
         Delivery delivery = deliveryMapper.toEntity(request);
         delivery.setDeliveryVolume(request.getDeliveryVolume());
         delivery.setDeliveryWeight(request.getDeliveryWeight());
@@ -39,7 +43,8 @@ public class DeliveryService {
     }
 
     @Transactional(readOnly = true)
-    public double deliveryCost(OrderDto orderDto) {
+    public BigDecimal deliveryCost(OrderDto orderDto) {
+        log.debug("start deliveryCost for {}", orderDto);
         Delivery delivery = getDeliveryByOrderOrThrow(orderDto.getOrderId());
         return calculateCost(
                 delivery.getFromAddress(),
@@ -52,6 +57,7 @@ public class DeliveryService {
 
     @Transactional
     public void deliveryPicked(UUID orderId) {
+        log.debug("start deliveryPicked for orderID {}", orderId);
         Delivery delivery = getDeliveryByOrderOrThrow(orderId);
         delivery.setDeliveryState(DeliveryState.IN_PROGRESS);
         deliveryRepository.save(delivery);
@@ -64,39 +70,44 @@ public class DeliveryService {
 
     @Transactional
     public void deliverySuccessful(UUID orderId) {
+        log.debug("start deliverySuccessful for orderId {}", orderId);
         updateDeliveryState(orderId, DeliveryState.DELIVERED);
         orderApi.delivery(orderId);
     }
 
     @Transactional
     public void deliveryFailed(UUID orderId) {
+        log.debug("start deliveryFailed for orderId {}", orderId);
         updateDeliveryState(orderId, DeliveryState.FAILED);
         orderApi.deliveryFailed(orderId);
     }
 
     private Delivery getDeliveryByOrderOrThrow(UUID orderId) {
+        log.debug("start getDeliveryByOrderOrThrow for orderId {}", orderId);
         return deliveryRepository.findByOrderId(orderId)
                 .orElseThrow(() -> new NoDeliveryFoundException(orderId));
     }
 
     private void updateDeliveryState(UUID orderId, DeliveryState newState) {
+        log.debug("start updateDeliveryState for orderId {}, state {}", orderId, newState.name());
         Delivery delivery = getDeliveryByOrderOrThrow(orderId);
         delivery.setDeliveryState(newState);
         deliveryRepository.save(delivery);
     }
 
-    private double calculateCost(AddressEmbeddable fromAddress, AddressEmbeddable toAddress,
+    private BigDecimal calculateCost(AddressEmbeddable fromAddress, AddressEmbeddable toAddress,
                          double weight, double volume, boolean fragile) {
-        double sum = BASE_COST;
+        log.debug("start calculateCost");
+        BigDecimal sum = BigDecimal.valueOf(BASE_COST);
         double factor = warehouseAddressFactor(fromAddress);
-        sum = sum + (BASE_COST * factor);
+        sum = sum.add(BigDecimal.valueOf(BASE_COST * factor));
         if (fragile) {
-            sum = sum + (sum * 0.2);
+            sum = sum.multiply(BigDecimal.valueOf(1.2));
         }
-        sum = sum + (weight * 0.3);
-        sum = sum + (volume * 0.2);
+        sum = sum.add(BigDecimal.valueOf(weight * 0.3));
+        sum = sum.add(BigDecimal.valueOf(volume * 0.2));
         if (!isSameStreet(fromAddress, toAddress)) {
-            sum = sum + (sum * 0.2);
+            sum = sum.multiply(BigDecimal.valueOf(1.2));
         }
         return sum;
     }
@@ -104,7 +115,6 @@ public class DeliveryService {
     private double warehouseAddressFactor(AddressEmbeddable address) {
         String s = toAddressString(address);
         if (s.contains("ADDRESS_2")) return 2.0;
-        if (s.contains("ADDRESS_1")) return 1.0;
         return 1.0;
     }
 

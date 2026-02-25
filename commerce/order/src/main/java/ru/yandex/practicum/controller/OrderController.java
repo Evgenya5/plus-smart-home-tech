@@ -30,8 +30,7 @@ public class OrderController implements OrderApi {
     public List<OrderDto> getClientOrders(
             @NotBlank @RequestParam String username) {
         log.info("GET /api/v1/order");
-        List<OrderDto> orders = orderService.getClientOrders(username);
-        return orders;
+        return orderService.getClientOrders(username);
     }
 
     @Override
@@ -40,8 +39,7 @@ public class OrderController implements OrderApi {
             @NotBlank @RequestParam String username,
             @Valid @RequestBody CreateNewOrderRequest request) {
         log.info("PUT /api/v1/order");
-        OrderDto order = orderService.createNewOrder(username, request);
-        return order;
+        return orderService.createNewOrder(username, request);
     }
 
     @Override
@@ -49,8 +47,7 @@ public class OrderController implements OrderApi {
     public OrderDto productReturn(
             @Valid @RequestBody ProductReturnRequest request) {
         log.info("POST /api/v1/order/return");
-        OrderDto order = orderService.productReturn(request);
-        return order;
+        return orderService.productReturn(request);
     }
 
     @Override
@@ -58,8 +55,7 @@ public class OrderController implements OrderApi {
     public OrderDto payment(
             @RequestBody @NotNull UUID orderId) {
         log.info("POST /api/v1/order/payment");
-        OrderDto order = orderService.payment(orderId);
-        return order;
+        return orderService.payment(orderId);
     }
 
     @Override
@@ -67,8 +63,7 @@ public class OrderController implements OrderApi {
     public OrderDto paymentFailed(
             @RequestBody @NotNull UUID orderId) {
         log.info("POST /api/v1/order/payment/failed");
-        OrderDto order = orderService.paymentFailed(orderId);
-        return order;
+        return orderService.paymentFailed(orderId);
     }
 
     @Override
@@ -76,8 +71,7 @@ public class OrderController implements OrderApi {
     public OrderDto delivery(
             @RequestBody @NotNull UUID orderId) {
         log.info("POST /api/v1/order/delivery");
-        OrderDto order = orderService.delivery(orderId);
-        return order;
+        return orderService.delivery(orderId);
     }
 
     @Override
@@ -85,8 +79,7 @@ public class OrderController implements OrderApi {
     public OrderDto deliveryFailed(
             @RequestBody @NotNull UUID orderId) {
         log.info("POST /api/v1/order/delivery/failed");
-        OrderDto order = orderService.deliveryFailed(orderId);
-        return order;
+        return orderService.deliveryFailed(orderId);
     }
 
     @Override
@@ -94,8 +87,7 @@ public class OrderController implements OrderApi {
     public OrderDto complete(
             @RequestBody @NotNull UUID orderId) {
         log.info("POST /api/v1/order/completed");
-        OrderDto order = orderService.complete(orderId);
-        return order;
+        return orderService.complete(orderId);
     }
 
     @Override
@@ -103,8 +95,7 @@ public class OrderController implements OrderApi {
     public OrderDto calculateTotalCost(
             @RequestBody @NotNull UUID orderId) {
         log.info("POST /api/v1/order/calculate/total");
-        OrderDto order = orderService.calculateTotalCost(orderId);
-        return order;
+        return orderService.calculateTotalCost(orderId);
     }
 
     @Override
@@ -112,8 +103,7 @@ public class OrderController implements OrderApi {
     public OrderDto calculateDeliveryCost(
             @RequestBody @NotNull UUID orderId) {
         log.info("POST /api/v1/order/calculate/delivery");
-        OrderDto order = orderService.calculateDeliveryCost(orderId);
-        return order;
+        return orderService.calculateDeliveryCost(orderId);
     }
 
     @Override
@@ -121,8 +111,7 @@ public class OrderController implements OrderApi {
     public OrderDto assembly(
             @RequestBody @NotNull UUID orderId) {
         log.info("POST /api/v1/order/assembly");
-        OrderDto order = orderService.assembly(orderId);
-        return order;
+        return orderService.assembly(orderId);
     }
 
     @Override
@@ -130,7 +119,6 @@ public class OrderController implements OrderApi {
     public OrderDto assemblyFailed(
             @RequestBody @NotNull UUID orderId) {
         log.info("POST /api/v1/order/assembly/failed");
-        OrderDto order = orderService.assemblyFailed(orderId);
-        return order;
+        return orderService.assemblyFailed(orderId);
     }
 }

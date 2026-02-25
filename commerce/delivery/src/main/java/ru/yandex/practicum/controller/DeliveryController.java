@@ -34,8 +34,7 @@ public class DeliveryController implements DeliveryApi {
     @PostMapping("/cost")
     public BigDecimal deliveryCost(@Valid @RequestBody OrderDto order) {
         log.info("POST /api/v1/delivery/cost");
-        double cost = deliveryService.deliveryCost(order);
-        return BigDecimal.valueOf(cost);
+        return deliveryService.deliveryCost(order);
     }
 
     @Override

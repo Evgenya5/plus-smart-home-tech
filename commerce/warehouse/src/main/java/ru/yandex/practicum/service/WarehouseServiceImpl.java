@@ -134,13 +134,16 @@ public class WarehouseServiceImpl implements WarehouseService {
     @Transactional
     public BookedProductsDto assemblyProductsForOrder(AssemblyProductsForOrderRequest request) {
         Map<UUID, Long> products = request.getProducts();
-        validateProductsAvailability(products);
+        List<ProductOfWarehouse> productOfWarehouseList = repository.findAllById(products.keySet());
+        validateProductsAvailability(productOfWarehouseList, products);
+        List<ProductOfWarehouse> saveProduct = new ArrayList<>();
         for (Map.Entry<UUID, Long> entry : products.entrySet()) {
-            ProductOfWarehouse product = findProductByIdOrThrow(entry.getKey());
+            ProductOfWarehouse product = findProductInListOrThrow(productOfWarehouseList, entry.getKey());
             validateProductQuantity(product, entry.getValue());
             product.reduceQuantity(entry.getValue());
-            repository.save(product);
+            saveProduct.add(product);
         }
+        repository.saveAll(saveProduct);
         orderDeliveryRepository.save(OrderDelivery.builder()
                 .orderId(request.getOrderId())
                 .deliveryId(null)
@@ -167,14 +170,20 @@ public class WarehouseServiceImpl implements WarehouseService {
 
     private ProductOfWarehouse findProductByIdOrThrow(UUID productId) {
         return repository.findById(productId)
-                .orElseThrow(() -> new NoSpecifiedProductInWarehouseException());
+                .orElseThrow(() -> new NoSpecifiedProductInWarehouseException("Нет заказываемого товара на складе"));
     }
 
-    private void validateProductsAvailability(Map<UUID, Long> products) {
+    private ProductOfWarehouse findProductInListOrThrow(List<ProductOfWarehouse> productOfWarehouseList, UUID productId) {
+        return productOfWarehouseList.stream().filter(p -> p.getProductId() == productId)
+                .findFirst()
+                .orElseThrow(() -> new NoSpecifiedProductInWarehouseException("Нет заказываемого товара на складе"));
+    }
+
+    private void validateProductsAvailability(List<ProductOfWarehouse> productOfWarehouseList, Map<UUID, Long> products) {
         for (Map.Entry<UUID, Long> entry : products.entrySet()) {
             UUID productId = entry.getKey();
             Long requestedQuantity = entry.getValue();
-            ProductOfWarehouse product = findProductByIdOrThrow(productId);
+            ProductOfWarehouse product = findProductInListOrThrow(productOfWarehouseList, productId);
             validateProductQuantity(product, requestedQuantity);
         }
     }
@@ -191,10 +200,11 @@ public class WarehouseServiceImpl implements WarehouseService {
         double totalWeight = 0.0;
         double totalVolume = 0.0;
         boolean hasFragile = false;
+        List<ProductOfWarehouse> productOfWarehouseList = repository.findAllById(products.keySet());
         for (Map.Entry<UUID, Long> entry : products.entrySet()) {
             UUID productId = entry.getKey();
             Long quantity = entry.getValue();
-            ProductOfWarehouse product = findProductByIdOrThrow(productId);
+            ProductOfWarehouse product = findProductInListOrThrow(productOfWarehouseList, productId);
             totalWeight += calculateItemWeight(product, quantity);
             totalVolume += calculateItemVolume(product, quantity);
             if (product.getFragile()) {
