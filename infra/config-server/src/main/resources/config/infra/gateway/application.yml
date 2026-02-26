@@ -1,0 +1,72 @@
+spring:
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: true
+      routes:
+        - id: shopping_cart_service_route
+          uri: lb://SHOPPING-CART
+          predicates:
+            - Path=/shopping-cart/**
+          filters:
+            - RewritePath=/shopping-cart/(?<segment>.*), /api/v1/shopping-cart/$\{segment}
+        - id: shopping_store_service_route
+          uri: lb://SHOPPING-STORE
+          predicates:
+            - Path=/shopping-store/**
+          filters:
+            - RewritePath=/shopping-store/(?<segment>.*), /api/v1/shopping-store/$\{segment}
+        - id: order_service_route
+          uri: lb://ORDER
+          predicates:
+            - Path=/order/**
+          filters:
+            - RewritePath=/order/(?<segment>.*), /api/v1/order/$\{segment}
+        - id: payment_service_route
+          uri: lb://PAYMENT
+          predicates:
+            - Path=/payment/**
+          filters:
+            - RewritePath=/payment/(?<segment>.*), /api/v1/payment/$\{segment}
+        - id: delivery_service_route
+          uri: lb://DELIVERY
+          predicates:
+            - Path=/delivery/**
+          filters:
+            - RewritePath=/delivery/(?<segment>.*), /api/v1/delivery/$\{segment}
+
+server:
+  port: 8080
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,gateway,routes,metrics
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: always
+      show-components: always
+    gateway:
+      enabled: true
+    routes:
+      enabled: true
+    beans:
+      enabled: true
+    env:
+      enabled: true
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG
+    org.springframework.cloud.loadbalancer: DEBUG
+    com.netflix.discovery: INFO

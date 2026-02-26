@@ -35,4 +35,8 @@ public class ProductOfWarehouse {
     public void addQuantity(Long addQuantity) {
         this.quantity += addQuantity;
     }
+
+    public void reduceQuantity(Long requestedQuantity) {
+        this.quantity -= requestedQuantity;
+    }
 }

@@ -5,17 +5,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.yandex.practicum.DTO.shoppingCart.ShoppingCartDto;
-import ru.yandex.practicum.DTO.warehouse.AddProductToWarehouseRequest;
-import ru.yandex.practicum.DTO.warehouse.AddressDto;
-import ru.yandex.practicum.DTO.warehouse.BookedProductsDto;
-import ru.yandex.practicum.DTO.warehouse.NewProductInWarehouseRequest;
-import ru.yandex.practicum.exception.warehouse.EmptyShoppingCart;
-import ru.yandex.practicum.exception.warehouse.NotFoundProductInWarehouseException;
-import ru.yandex.practicum.exception.warehouse.ProductInShoppingCartNorEnoughInWarehouse;
-import ru.yandex.practicum.exception.warehouse.ProductAlreadyExistInWarehouseException;
+import ru.yandex.practicum.DTO.warehouse.*;
+import ru.yandex.practicum.exception.order.NoSpecifiedProductInWarehouseException;
+import ru.yandex.practicum.exception.warehouse.*;
+import ru.yandex.practicum.interfaces.OrderDeliveryRepository;
 import ru.yandex.practicum.interfaces.WarehouseRepository;
 import ru.yandex.practicum.interfaces.WarehouseService;
 import ru.yandex.practicum.mapper.WarehouseMapper;
+import ru.yandex.practicum.model.OrderDelivery;
 import ru.yandex.practicum.model.ProductOfWarehouse;
 
 import java.security.SecureRandom;
@@ -27,6 +24,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class WarehouseServiceImpl implements WarehouseService {
     private final WarehouseRepository repository;
+    private final OrderDeliveryRepository orderDeliveryRepository;
     private final WarehouseMapper mapper;
 
     private static final String[] ADDRESSES =
@@ -133,9 +131,100 @@ public class WarehouseServiceImpl implements WarehouseService {
                 .build();
     }
 
+    @Transactional
+    public BookedProductsDto assemblyProductsForOrder(AssemblyProductsForOrderRequest request) {
+        Map<UUID, Long> products = request.getProducts();
+        List<ProductOfWarehouse> productOfWarehouseList = repository.findAllById(products.keySet());
+        validateProductsAvailability(productOfWarehouseList, products);
+        List<ProductOfWarehouse> saveProduct = new ArrayList<>();
+        for (Map.Entry<UUID, Long> entry : products.entrySet()) {
+            ProductOfWarehouse product = findProductInListOrThrow(productOfWarehouseList, entry.getKey());
+            validateProductQuantity(product, entry.getValue());
+            product.reduceQuantity(entry.getValue());
+            saveProduct.add(product);
+        }
+        repository.saveAll(saveProduct);
+        orderDeliveryRepository.save(OrderDelivery.builder()
+                .orderId(request.getOrderId())
+                .deliveryId(null)
+                .build());
+        DeliveryCalculationResult calculation = calculateDeliveryDetails(products);
+        return new BookedProductsDto(
+                calculation.totalWeight(),
+                calculation.hasFragile(),
+                calculation.totalVolume()
+        );
+    }
+
     private void validIdProduct(UUID idProduct) {
         if (!repository.existsById(idProduct)) {
             throw new NotFoundProductInWarehouseException("Продукт c ID: " + idProduct + " не найден на складе.");
         }
     }
+
+    private void validateProductNotExists(UUID productId) {
+        if (repository.existsById(productId)) {
+            throw new SpecifiedProductAlreadyInWarehouseException(productId);
+        }
+    }
+
+    private ProductOfWarehouse findProductByIdOrThrow(UUID productId) {
+        return repository.findById(productId)
+                .orElseThrow(() -> new NoSpecifiedProductInWarehouseException("Нет заказываемого товара на складе"));
+    }
+
+    private ProductOfWarehouse findProductInListOrThrow(List<ProductOfWarehouse> productOfWarehouseList, UUID productId) {
+        return productOfWarehouseList.stream().filter(p -> p.getProductId() == productId)
+                .findFirst()
+                .orElseThrow(() -> new NoSpecifiedProductInWarehouseException("Нет заказываемого товара на складе"));
+    }
+
+    private void validateProductsAvailability(List<ProductOfWarehouse> productOfWarehouseList, Map<UUID, Long> products) {
+        for (Map.Entry<UUID, Long> entry : products.entrySet()) {
+            UUID productId = entry.getKey();
+            Long requestedQuantity = entry.getValue();
+            ProductOfWarehouse product = findProductInListOrThrow(productOfWarehouseList, productId);
+            validateProductQuantity(product, requestedQuantity);
+        }
+    }
+
+    private void validateProductQuantity(ProductOfWarehouse product, Long requestedQuantity) {
+        if (product.getQuantity() < requestedQuantity) {
+            throw new ProductInShoppingCartNorEnoughInWarehouse("Указанного продукта недостаточно на складе " +
+                    product.getProductId()
+            );
+        }
+    }
+
+    private DeliveryCalculationResult calculateDeliveryDetails(Map<UUID, Long> products) {
+        double totalWeight = 0.0;
+        double totalVolume = 0.0;
+        boolean hasFragile = false;
+        List<ProductOfWarehouse> productOfWarehouseList = repository.findAllById(products.keySet());
+        for (Map.Entry<UUID, Long> entry : products.entrySet()) {
+            UUID productId = entry.getKey();
+            Long quantity = entry.getValue();
+            ProductOfWarehouse product = findProductInListOrThrow(productOfWarehouseList, productId);
+            totalWeight += calculateItemWeight(product, quantity);
+            totalVolume += calculateItemVolume(product, quantity);
+            if (product.getFragile()) {
+                hasFragile = true;
+            }
+        }
+        return new DeliveryCalculationResult(totalWeight, totalVolume, hasFragile);
+    }
+
+    private double calculateItemWeight(ProductOfWarehouse product, Long quantity) {
+        return product.getWeight() * quantity;
+    }
+
+    private double calculateItemVolume(ProductOfWarehouse product, Long quantity) {
+        return product.getDimension().getVolume() * quantity;
+    }
+
+    private record DeliveryCalculationResult(
+            double totalWeight,
+            double totalVolume,
+            boolean hasFragile
+    ) {}
 }
